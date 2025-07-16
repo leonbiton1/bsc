@@ -263,10 +263,13 @@ func (f *TxFetcher) Notify(peer string, types []byte, sizes []uint32, hashes []c
 	for i, hash := range hashes {
 		switch {
 		case f.hasTx(hash):
+			log.Info("NewPooledTransactionHashesPacket in Notify TxFetcher hasTx", hash.String())
 			duplicate++
 		case f.isKnownUnderpriced(hash):
+			log.Info("NewPooledTransactionHashesPacket in Notify TxFetcher isKnownUnderpriced", hash.String())
 			underpriced++
 		default:
+			log.Info("NewPooledTransactionHashesPacket in Notify TxFetcher unknownHashes", hash.String())
 			unknownHashes = append(unknownHashes, hash)
 
 			// Transaction metadata has been available since eth68, and all
@@ -329,6 +332,7 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 	)
 	// proceed in batches
 	for i := 0; i < len(txs); i += 128 {
+		log.Info("in Enqueue tx", txs[i].Hash().String())
 		end := i + 128
 		if end > len(txs) {
 			end = len(txs)
