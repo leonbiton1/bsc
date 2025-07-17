@@ -514,6 +514,7 @@ func (f *TxFetcher) loop() {
 						continue
 					}
 					f.waitlist[hash][ann.origin] = struct{}{}
+					log.Info("tx known and adding as second adding to waitlist", "hash", hash, "origin", ann.origin)
 
 					if waitslots := f.waitslots[ann.origin]; waitslots != nil {
 						waitslots[hash] = &txMetadataWithSeq{
@@ -582,6 +583,7 @@ func (f *TxFetcher) loop() {
 			// ones into the retrieval queues
 			actives := make(map[string]struct{})
 			for hash, instance := range f.waittime {
+				log.Info("iterating wait time", hash.String(), "time", instance, "f.clock.Now()-instance", f.clock.Now()-instance)
 				if time.Duration(f.clock.Now()-instance)+txGatherSlack > txArriveTimeout {
 					// Transaction expired without propagation, schedule for retrieval
 					if f.announced[hash] != nil {
@@ -589,15 +591,19 @@ func (f *TxFetcher) loop() {
 					}
 					f.announced[hash] = f.waitlist[hash]
 					for peer := range f.waitlist[hash] {
+						log.Info("found tx in waitlist", hash.String())
 						if announces := f.announces[peer]; announces != nil {
+							log.Info("found tx in announces", hash.String())
 							announces[hash] = f.waitslots[peer][hash]
 						} else {
+							log.Info("didnt found tx in announces", hash.String())
 							f.announces[peer] = map[common.Hash]*txMetadataWithSeq{hash: f.waitslots[peer][hash]}
 						}
 						delete(f.waitslots[peer], hash)
 						if len(f.waitslots[peer]) == 0 {
 							delete(f.waitslots, peer)
 						}
+						log.Info("adding tx to active", hash.String(), "peer", peer)
 						actives[peer] = struct{}{}
 					}
 					delete(f.waittime, hash)
@@ -951,7 +957,9 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 		)
 		f.forEachAnnounce(f.announces[peer], func(hash common.Hash, meta txMetadata) bool {
 			// If the transaction is already fetching, skip to the next one
+			log.Info("in scheduleFetches", hash, "peer", peer)
 			if _, ok := f.fetching[hash]; ok {
+				log.Info("already fetching peer ", peer, "hash", hash)
 				return true
 			}
 			// Mark the hash as fetching and stash away possible alternates
@@ -976,6 +984,9 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 			f.requests[peer] = &txRequest{hashes: hashes, time: f.clock.Now()}
 			txRequestOutMeter.Mark(int64(len(hashes)))
 			p := peer
+			for _, hash := range hashes {
+				log.Info("requesting tx", hash, "peer", p)
+			}
 			gopool.Submit(func() {
 				// Try to fetch the transactions, but in case of a request
 				// failure (e.g. peer disconnected), reschedule the hashes.
