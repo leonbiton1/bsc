@@ -428,6 +428,9 @@ func (f *TxFetcher) loop() {
 			// filter outside is essentially zero.
 			used := len(f.waitslots[ann.origin]) + len(f.announces[ann.origin])
 			if used >= maxTxAnnounces {
+				for hash := range ann.hashes {
+					log.Info("tx", hash, "discarded in maxTxAnnounces", used)
+				}
 				// This can happen if a set of transactions are requested but not
 				// all fulfilled, so the remainder are rescheduled without the cap
 				// check. Should be fine as the limit is in the thousands and the
@@ -529,12 +532,15 @@ func (f *TxFetcher) loop() {
 				}
 				// Transaction unknown to the fetcher, insert it into the waiting list
 				f.waitlist[hash] = map[string]struct{}{ann.origin: {}}
+				log.Info("tx unknown adding to waitlist", "hash", hash, "origin", ann.origin)
 
 				// Assign the current timestamp as the wait time, but for blob transactions,
 				// skip the wait time since they are only announced.
 				if ann.metas[i].kind != types.BlobTxType {
+					log.Info("tx unknown adding to waittime", "hash", hash, "origin", ann.origin)
 					f.waittime[hash] = f.clock.Now()
 				} else {
+					log.Info("tx unknown adding to waittime with blob", "hash", hash, "origin", ann.origin, "decrease time", mclock.AbsTime(txArriveTimeout))
 					hasBlob = true
 					f.waittime[hash] = f.clock.Now() - mclock.AbsTime(txArriveTimeout)
 				}
@@ -554,11 +560,17 @@ func (f *TxFetcher) loop() {
 			}
 			// If a new item was added to the waitlist, schedule it into the fetcher
 			if hasBlob || (idleWait && len(f.waittime) > 0) {
+				for _, hash := range ann.hashes {
+					log.Info("schedule into the fetcher", hash.String())
+				}
 				f.rescheduleWait(waitTimer, waitTrigger)
 			}
 			// If this peer is new and announced something already queued, maybe
 			// request transactions from them
 			if !oldPeer && len(f.announces[ann.origin]) > 0 {
+				for _, hash := range ann.hashes {
+					log.Info("schedule new peer to fetcher", hash.String())
+				}
 				f.scheduleFetches(timeoutTimer, timeoutTrigger, map[string]struct{}{ann.origin: {}})
 			}
 
