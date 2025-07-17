@@ -992,6 +992,7 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 				// Try to fetch the transactions, but in case of a request
 				// failure (e.g. peer disconnected), reschedule the hashes.
 				if err := f.fetchTxs(p, hashes); err != nil {
+					log.Info("failed to fetch txs", "peer", p, "err", err)
 					txRequestFailMeter.Mark(int64(len(hashes)))
 					f.Drop(p)
 				}
