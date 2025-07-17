@@ -558,6 +558,9 @@ func (f *TxFetcher) loop() {
 					}
 				}
 			}
+			for _, hash := range ann.hashes {
+				log.Info("before schedule", hash.String(), "has blob", hasBlob, "idleWait", idleWait, "len(f.waittime)", len(f.waittime), "oldPeer", oldPeer, "len(f.announces[ann.origin])", len(f.announces[ann.origin]))
+			}
 			// If a new item was added to the waitlist, schedule it into the fetcher
 			if hasBlob || (idleWait && len(f.waittime) > 0) {
 				for _, hash := range ann.hashes {
