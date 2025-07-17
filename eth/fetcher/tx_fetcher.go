@@ -332,7 +332,7 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 	)
 	// proceed in batches
 	for i := 0; i < len(txs); i += 128 {
-		log.Info("in Enqueue tx", txs[i].Hash().String())
+		log.Info("in Enqueue tx", txs[i].Hash().String(), "peer", peer)
 		end := i + 128
 		if end > len(txs) {
 			end = len(txs)
@@ -963,6 +963,7 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 				return true
 			}
 			// Mark the hash as fetching and stash away possible alternates
+			log.Info("adding tx to fetching", hash, "peer", peer)
 			f.fetching[hash] = peer
 
 			if _, ok := f.alternates[hash]; ok {
@@ -987,7 +988,7 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 			for _, hash := range hashes {
 				log.Info("requesting tx", hash, "peer", p)
 			}
-			gopool.Submit(func() {
+			err := gopool.Submit(func() {
 				// Try to fetch the transactions, but in case of a request
 				// failure (e.g. peer disconnected), reschedule the hashes.
 				if err := f.fetchTxs(p, hashes); err != nil {
@@ -995,6 +996,11 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 					f.Drop(p)
 				}
 			})
+			if err != nil {
+				for _, hash := range hashes {
+					log.Warn("failed to submit tx", hash.String(), "peer", p, "err", err)
+				}
+			}
 		}
 	})
 	// If a new request was fired, schedule a timeout timer
