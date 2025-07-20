@@ -331,6 +331,9 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 		metas = make([]txMetadata, 0, len(txs))
 	)
 	// proceed in batches
+	for _, tx := range txs {
+		log.Info("Enqueued tx in custom loop", tx.Hash().String(), "tx len", len(txs))
+	}
 	for i := 0; i < len(txs); i += 128 {
 		log.Info("in Enqueue tx", txs[i].Hash().String(), "peer", peer)
 		end := i + 128
@@ -383,6 +386,9 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 	}
 	select {
 	case f.cleanup <- &txDelivery{origin: peer, hashes: added, metas: metas, direct: direct}:
+		for _, hash := range added {
+			log.Info("adding tx to cleanup", hash.String(), "peer", peer)
+		}
 		return nil
 	case <-f.quit:
 		return errTerminated
