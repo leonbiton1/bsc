@@ -83,6 +83,7 @@ func (h *ethHandler) Handle(peer *eth.Peer, packet eth.Packet) error {
 		return h.txFetcher.Enqueue(peer.ID(), *packet, true)
 
 	default:
+		log.Info("unexpected eth packet type", peer)
 		return fmt.Errorf("unexpected eth packet type: %T", packet)
 	}
 }
