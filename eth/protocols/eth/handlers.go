@@ -481,10 +481,17 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 	if err := msg.Decode(&txs); err != nil {
 		return fmt.Errorf("%w: message %v: %v", errDecode, msg, err)
 	}
+	for _, tx := range txs {
+		if tx == nil {
+			log.Info("tx is nil", peer)
+			continue
+		}
+		log.Info("tx is", tx.Hash().String())
+	}
 	for i, tx := range txs {
 		// Validate and mark the remote transaction
-		log.Info("tx is nil", peer)
 		if tx == nil {
+			log.Info("tx is nil", peer)
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
 		peer.markTransaction(tx.Hash())
@@ -506,7 +513,7 @@ func handlePooledTransactions(backend Backend, msg Decoder, peer *Peer) error {
 	for i, tx := range txs.PooledTransactionsResponse {
 		// Validate and mark the remote transaction
 		if tx == nil {
-			log.Info("tx failed in handlePooledTransactions", tx.Hash().String())
+			log.Info("tx failed in handlePooledTransactions")
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
 		peer.markTransaction(tx.Hash())
