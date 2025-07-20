@@ -352,6 +352,7 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 				f.underpriced.Add(batch[j].Hash(), batch[j].Time())
 			}
 			// Track a few interesting failure types
+			log.Info("in Enqueue tx loop", txs[i].Hash().String(), "peer", peer, "err", err)
 			switch {
 			case err == nil: // Noop, but need to handle to not count these
 
@@ -670,6 +671,7 @@ func (f *TxFetcher) loop() {
 			// traces of the hash from internal trackers. That said, compare any
 			// advertised metadata with the real ones and drop bad peers.
 			for i, hash := range delivery.hashes {
+				log.Info("in delivery", hash.String(), "delivery", delivery.direct)
 				if _, ok := f.waitlist[hash]; ok {
 					for peer, txset := range f.waitslots {
 						if meta := txset[hash]; meta != nil {
@@ -755,6 +757,7 @@ func (f *TxFetcher) loop() {
 				// this peer, depending on the response cutoff)
 				delivered := make(map[common.Hash]struct{})
 				for _, hash := range delivery.hashes {
+					log.Info("adding tx to delivered map", hash.String())
 					delivered[hash] = struct{}{}
 				}
 				cutoff := len(req.hashes) // If nothing is delivered, assume everything is missing, don't retry!!!
@@ -788,6 +791,9 @@ func (f *TxFetcher) loop() {
 					}
 					delete(f.alternates, hash)
 					delete(f.fetching, hash)
+				}
+				for _, hash := range delivery.hashes {
+					log.Info("Partial delivery requesting full", hash.String())
 				}
 				// Something was delivered, try to reschedule requests
 				f.scheduleFetches(timeoutTimer, timeoutTrigger, nil) // Partial delivery may enable others to deliver too
