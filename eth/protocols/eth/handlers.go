@@ -491,6 +491,7 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 func handlePooledTransactions(backend Backend, msg Decoder, peer *Peer) error {
 	// Transactions arrived, make sure we have a valid and fresh chain to handle them
 	if !backend.AcceptTxs() {
+		log.Info("not accepting tx")
 		return nil
 	}
 	// Transactions can be processed, parse all of them and deliver to the pool
@@ -501,6 +502,7 @@ func handlePooledTransactions(backend Backend, msg Decoder, peer *Peer) error {
 	for i, tx := range txs.PooledTransactionsResponse {
 		// Validate and mark the remote transaction
 		if tx == nil {
+			log.Info("tx failed in handlePooledTransactions", tx.Hash().String())
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
 		peer.markTransaction(tx.Hash())
