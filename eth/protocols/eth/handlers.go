@@ -486,12 +486,11 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 			log.Info("tx is nil", peer)
 			continue
 		}
-		log.Info("tx is", tx.Hash().String())
+		log.Info("tx is", tx.Hash().String(), "peer", peer)
 	}
 	for i, tx := range txs {
 		// Validate and mark the remote transaction
 		if tx == nil {
-			log.Info("tx is nil", peer)
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
 		peer.markTransaction(tx.Hash())

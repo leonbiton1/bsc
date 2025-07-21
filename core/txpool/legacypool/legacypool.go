@@ -1029,10 +1029,12 @@ func (pool *LegacyPool) Add(txs []*types.Transaction, sync bool) []error {
 		news = make([]*types.Transaction, 0, len(txs))
 	)
 	for i, tx := range txs {
+		log.Info("adding tx to pool", tx.Hash().String())
 		// If the transaction is known, pre-set the error slot
 		if pool.all.Get(tx.Hash()) != nil {
 			errs[i] = txpool.ErrAlreadyKnown
 			knownTxMeter.Mark(1)
+			log.Info("tx known to pool", tx.Hash().String())
 			continue
 		}
 		// Exclude transactions with basic errors, e.g invalid signatures and
@@ -1040,7 +1042,7 @@ func (pool *LegacyPool) Add(txs []*types.Transaction, sync bool) []error {
 		// in transactions before obtaining lock
 		if err := pool.validateTxBasics(tx); err != nil {
 			errs[i] = err
-			log.Trace("Discarding invalid transaction", "hash", tx.Hash(), "err", err)
+			log.Info("Discarding invalid transaction", "hash", tx.Hash().String(), "err", err)
 			invalidTxMeter.Mark(1)
 			continue
 		}
@@ -1080,6 +1082,7 @@ func (pool *LegacyPool) addTxsLocked(txs []*types.Transaction) ([]error, *accoun
 	for i, tx := range txs {
 		replaced, err := pool.add(tx)
 		errs[i] = err
+		log.Info("adding tx in addTxsLocked", tx.Hash().String(), "err", err, "replaced", replaced)
 		if err == nil && !replaced {
 			dirty.addTx(tx)
 		}

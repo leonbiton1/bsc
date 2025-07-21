@@ -566,9 +566,6 @@ func (f *TxFetcher) loop() {
 					}
 				}
 			}
-			for _, hash := range ann.hashes {
-				log.Info("before schedule", hash.String(), "has blob", hasBlob, "idleWait", idleWait, "len(f.waittime)", len(f.waittime), "oldPeer", oldPeer, "len(f.announces[ann.origin])", len(f.announces[ann.origin]))
-			}
 			// If a new item was added to the waitlist, schedule it into the fetcher
 			if hasBlob || (idleWait && len(f.waittime) > 0) {
 				for _, hash := range ann.hashes {
@@ -590,7 +587,6 @@ func (f *TxFetcher) loop() {
 			// ones into the retrieval queues
 			actives := make(map[string]struct{})
 			for hash, instance := range f.waittime {
-				log.Info("iterating wait time", hash.String(), "time", instance, "f.clock.Now()-instance", f.clock.Now()-instance)
 				if time.Duration(f.clock.Now()-instance)+txGatherSlack > txArriveTimeout {
 					// Transaction expired without propagation, schedule for retrieval
 					if f.announced[hash] != nil {
@@ -598,9 +594,7 @@ func (f *TxFetcher) loop() {
 					}
 					f.announced[hash] = f.waitlist[hash]
 					for peer := range f.waitlist[hash] {
-						log.Info("found tx in waitlist", hash.String())
 						if announces := f.announces[peer]; announces != nil {
-							log.Info("found tx in announces", hash.String())
 							announces[hash] = f.waitslots[peer][hash]
 						} else {
 							log.Info("didnt found tx in announces", hash.String())
@@ -679,7 +673,9 @@ func (f *TxFetcher) loop() {
 			for i, hash := range delivery.hashes {
 				log.Info("in delivery", hash.String(), "delivery", delivery.direct)
 				if _, ok := f.waitlist[hash]; ok {
+					log.Info("tx is in waitlist", hash.String())
 					for peer, txset := range f.waitslots {
+						log.Info("tx is in waitlist", hash.String(), "peer", peer)
 						if meta := txset[hash]; meta != nil {
 							if delivery.metas[i].kind != meta.kind {
 								log.Warn("Announced transaction type mismatch", "peer", peer, "tx", hash, "type", delivery.metas[i].kind, "ann", meta.kind)
@@ -706,6 +702,7 @@ func (f *TxFetcher) loop() {
 					delete(f.waittime, hash)
 				} else {
 					for peer, txset := range f.announces {
+						log.Info("found tx in announces", hash.String(), "peer", peer)
 						if meta := txset[hash]; meta != nil {
 							if delivery.metas[i].kind != meta.kind {
 								log.Warn("Announced transaction type mismatch", "peer", peer, "tx", hash, "type", delivery.metas[i].kind, "ann", meta.kind)
@@ -799,7 +796,7 @@ func (f *TxFetcher) loop() {
 					delete(f.fetching, hash)
 				}
 				for _, hash := range delivery.hashes {
-					log.Info("Partial delivery requesting full", hash.String())
+					log.Info("scheduleFetches", hash.String(), "peer", delivery.origin)
 				}
 				// Something was delivered, try to reschedule requests
 				f.scheduleFetches(timeoutTimer, timeoutTrigger, nil) // Partial delivery may enable others to deliver too
@@ -969,7 +966,6 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 		)
 		f.forEachAnnounce(f.announces[peer], func(hash common.Hash, meta txMetadata) bool {
 			// If the transaction is already fetching, skip to the next one
-			log.Info("in scheduleFetches", hash, "peer", peer)
 			if _, ok := f.fetching[hash]; ok {
 				log.Info("already fetching peer ", peer, "hash", hash)
 				return true
