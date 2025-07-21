@@ -438,11 +438,11 @@ func handleGetPooledTransactions(backend Backend, msg Decoder, peer *Peer) error
 	if err := msg.Decode(&query); err != nil {
 		return fmt.Errorf("%w: message %v: %v", errDecode, msg, err)
 	}
-	hashes, txs := answerGetPooledTransactions(backend, query.GetPooledTransactionsRequest)
+	hashes, txs := answerGetPooledTransactions(backend, query.GetPooledTransactionsRequest, peer)
 	return peer.ReplyPooledTransactionsRLP(query.RequestId, hashes, txs)
 }
 
-func answerGetPooledTransactions(backend Backend, query GetPooledTransactionsRequest) ([]common.Hash, []rlp.RawValue) {
+func answerGetPooledTransactions(backend Backend, query GetPooledTransactionsRequest, peer *Peer) ([]common.Hash, []rlp.RawValue) {
 	// Gather transactions until the fetch or network limits is reached
 	var (
 		bytes  int
@@ -450,12 +450,15 @@ func answerGetPooledTransactions(backend Backend, query GetPooledTransactionsReq
 		txs    []rlp.RawValue
 	)
 	for _, hash := range query {
+		log.Info("got request for full txs", hash.String(), "peer", peer.id)
 		if bytes >= softResponseLimit {
+			log.Info("softResponseLimit breaking !", hash.String(), "peer", peer.id)
 			break
 		}
 		// Retrieve the requested transaction, skipping if unknown to us
 		tx := backend.TxPool().Get(hash)
 		if tx == nil {
+			log.Info("tx is nil, not sending", hash.String(), "peer", peer.id)
 			continue
 		}
 		// If known, encode and queue for response packet
