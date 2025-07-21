@@ -1215,6 +1215,7 @@ func (p *BlobPool) Get(hash common.Hash) *types.Transaction {
 	// Pull the blob from disk and return an assembled response
 	id, ok := p.lookup.storeidOfTx(hash)
 	if !ok {
+		log.Info("blob tx returning nil, didnt found", hash.String())
 		return nil
 	}
 	data, err := p.store.Get(id)
