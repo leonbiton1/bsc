@@ -967,11 +967,9 @@ func (f *TxFetcher) scheduleFetches(timer *mclock.Timer, timeout chan struct{}, 
 		f.forEachAnnounce(f.announces[peer], func(hash common.Hash, meta txMetadata) bool {
 			// If the transaction is already fetching, skip to the next one
 			if _, ok := f.fetching[hash]; ok {
-				log.Info("already fetching peer ", peer, "hash", hash)
 				return true
 			}
 			// Mark the hash as fetching and stash away possible alternates
-			log.Info("adding tx to fetching", hash, "peer", peer)
 			f.fetching[hash] = peer
 
 			if _, ok := f.alternates[hash]; ok {
