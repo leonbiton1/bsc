@@ -17,6 +17,7 @@
 package eth
 
 import (
+	"github.com/ethereum/go-ethereum/log"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -477,10 +478,14 @@ func (p *Peer) RequestTxs(hashes []common.Hash) error {
 	id := rand.Uint64()
 
 	requestTracker.Track(p.id, p.version, GetPooledTransactionsMsg, PooledTransactionsMsg, id)
-	return p2p.Send(p.rw, GetPooledTransactionsMsg, &GetPooledTransactionsPacket{
+	resp := p2p.Send(p.rw, GetPooledTransactionsMsg, &GetPooledTransactionsPacket{
 		RequestId:                    id,
 		GetPooledTransactionsRequest: hashes,
 	})
+	for _, hash := range hashes {
+		log.Info("sent req for full tx", hash.String(), "peer", p.id, "err", resp)
+	}
+	return resp
 }
 
 // knownCache is a cache for known hashes.
