@@ -18,7 +18,6 @@ package legacypool
 
 import (
 	"container/heap"
-	"github.com/google/martian/log"
 	"math"
 	"math/big"
 	"slices"
@@ -29,6 +28,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/holiman/uint256"
 )
 
@@ -362,9 +362,9 @@ func (l *list) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Transa
 
 	// Otherwise overwrite the old transaction with the current one
 	if tx == nil {
-		log.Infof("nil transaction in add!")
+		log.Info("nil transaction in add!")
 	} else {
-		log.Infof("adding tx to pool %v", tx.Hash().String())
+		log.Info("adding tx to pool %v", tx.Hash().String())
 	}
 	l.txs.Put(tx)
 	if l.costcap.Cmp(cost) < 0 {
