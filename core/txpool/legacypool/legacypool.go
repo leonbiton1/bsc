@@ -1857,6 +1857,7 @@ func (t *lookup) Range(f func(hash common.Hash, tx *types.Transaction) bool) {
 
 // Get returns a transaction if it exists in the lookup, or nil if not found.
 func (t *lookup) Get(hash common.Hash) *types.Transaction {
+	log.Info("seacjing tx in lookup", hash.String())
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 

@@ -1203,6 +1203,7 @@ func (p *BlobPool) Has(hash common.Hash) bool {
 func (p *BlobPool) Get(hash common.Hash) *types.Transaction {
 	// Track the amount of time waiting to retrieve a fully resolved blob tx from
 	// the pool and the amount of time actually spent on pulling the data from disk.
+	log.Info("searching tx in blob pool", hash.String())
 	getStart := time.Now()
 	p.lock.RLock()
 	getwaitHist.Update(time.Since(getStart).Nanoseconds())
