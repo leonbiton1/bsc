@@ -1119,7 +1119,10 @@ func (pool *LegacyPool) Status(hash common.Hash) txpool.TxStatus {
 func (pool *LegacyPool) Get(hash common.Hash) *types.Transaction {
 	tx := pool.get(hash)
 	if tx == nil {
+		log.Info("tx is nil, not sending", hash.String())
 		return nil
+	} else {
+		log.Info("tx is sending in LegacyPool", hash.String())
 	}
 	return tx
 }
@@ -1884,6 +1887,7 @@ func (t *lookup) Add(tx *types.Transaction) {
 	slotsGauge.Update(int64(t.slots))
 
 	t.txs[tx.Hash()] = tx
+	log.Info("Added transaction in legacy pool", tx.Hash())
 	t.addAuthorities(tx)
 }
 

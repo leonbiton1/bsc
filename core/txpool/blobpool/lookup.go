@@ -18,6 +18,7 @@ package blobpool
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 // lookup maps blob versioned hashes to transaction hashes that include them,
@@ -73,6 +74,7 @@ func (l *lookup) track(tx *blobTxMeta) {
 	}
 	// Map the transaction hash to the datastore id
 	l.txIndex[tx.hash] = tx.id
+	log.Info("inserting tx to blob map", "hash", tx.hash)
 }
 
 // untrack removes a set of mappings from blob versioned hashes to transaction

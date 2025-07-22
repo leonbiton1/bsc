@@ -460,6 +460,8 @@ func answerGetPooledTransactions(backend Backend, query GetPooledTransactionsReq
 		if tx == nil {
 			log.Info("tx is nil, not sending", hash.String(), "peer", peer.id)
 			continue
+		} else {
+			log.Info("tx not nil, sending", hash.String(), "peer", peer.id)
 		}
 		// If known, encode and queue for response packet
 		if encoded, err := rlp.EncodeToBytes(tx); err != nil {
