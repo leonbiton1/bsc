@@ -19,10 +19,7 @@ package txpool
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/core/txpool/blobpool"
-	"github.com/ethereum/go-ethereum/core/txpool/legacypool"
 	"math/big"
-	"reflect"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
