@@ -1117,9 +1117,10 @@ func (pool *LegacyPool) Status(hash common.Hash) txpool.TxStatus {
 
 // Get returns a transaction if it is contained in the pool and nil otherwise.
 func (pool *LegacyPool) Get(hash common.Hash) *types.Transaction {
+	log.Info("getting tx from LegacyPool", hash.String())
 	tx := pool.get(hash)
 	if tx == nil {
-		log.Info("tx is nil, not sending", hash.String())
+		log.Info("tx is nil, not sending in LegacyPool", hash.String())
 		return nil
 	} else {
 		log.Info("tx is sending in LegacyPool", hash.String())

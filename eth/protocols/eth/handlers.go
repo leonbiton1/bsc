@@ -457,6 +457,7 @@ func answerGetPooledTransactions(backend Backend, query GetPooledTransactionsReq
 		}
 		// Retrieve the requested transaction, skipping if unknown to us
 		tx := backend.TxPool().Get(hash)
+		log.Info("txpool type type", fmt.Sprintf("%T", backend.TxPool()))
 		if tx == nil {
 			log.Info("tx is nil, not sending", hash.String(), "peer", peer.id)
 			continue

@@ -19,7 +19,10 @@ package txpool
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/core/txpool/blobpool"
+	"github.com/ethereum/go-ethereum/core/txpool/legacypool"
 	"math/big"
+	"reflect"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -307,6 +310,7 @@ func (p *TxPool) Has(hash common.Hash) bool {
 
 // Get returns a transaction if it is contained in the pool, or nil otherwise.
 func (p *TxPool) Get(hash common.Hash) *types.Transaction {
+	log.Info("in sub pool search tx", hash.String())
 	for _, subpool := range p.subpools {
 		if tx := subpool.Get(hash); tx != nil {
 			return tx
