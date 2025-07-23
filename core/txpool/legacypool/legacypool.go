@@ -858,6 +858,7 @@ func (pool *LegacyPool) add(tx *types.Transaction) (replaced bool, err error) {
 		}
 		// New transaction is better, replace old one
 		if old != nil {
+			log.Info("in add pool new tx is better", old.Hash().String())
 			pool.all.Remove(old.Hash())
 			pool.priced.Removed(1)
 			pendingReplaceMeter.Mark(1)
@@ -938,6 +939,7 @@ func (pool *LegacyPool) enqueueTx(hash common.Hash, tx *types.Transaction, addAl
 	}
 	// Discard any previous transaction and mark this
 	if old != nil {
+		log.Info("in enqueueTx discard previous tx", old.Hash().String())
 		pool.all.Remove(old.Hash())
 		pool.priced.Removed(1)
 		queuedReplaceMeter.Mark(1)
@@ -975,6 +977,7 @@ func (pool *LegacyPool) promoteTx(addr common.Address, hash common.Hash, tx *typ
 	inserted, old := list.Add(tx, pool.config.PriceBump)
 	if !inserted {
 		// An older transaction was better, discard this
+		log.Info("in promoteTx old tx is better", hash.String())
 		pool.all.Remove(hash)
 		pool.priced.Removed(1)
 		pendingDiscardMeter.Mark(1)
@@ -982,6 +985,7 @@ func (pool *LegacyPool) promoteTx(addr common.Address, hash common.Hash, tx *typ
 	}
 	// Otherwise discard any previous transaction and mark this
 	if old != nil {
+		log.Info("in promoteTx discard old tx", old.Hash().String())
 		pool.all.Remove(old.Hash())
 		pool.priced.Removed(1)
 		pendingReplaceMeter.Mark(1)
@@ -1177,6 +1181,7 @@ func (pool *LegacyPool) removeTx(hash common.Hash, outofbound bool, unreserve bo
 		}()
 	}
 	// Remove it from the list of known transactions
+	log.Info("in removeTx", hash.String())
 	pool.all.Remove(hash)
 	if outofbound {
 		pool.priced.Removed(1)
@@ -1516,12 +1521,14 @@ func (pool *LegacyPool) promoteExecutables(accounts []common.Address) []*types.T
 		// Drop all transactions that are deemed too old (low nonce)
 		forwards := list.Forward(pool.currentState.GetNonce(addr))
 		for _, tx := range forwards {
+			log.Info("in promoteExecutables drop old tx", tx.Hash().String())
 			pool.all.Remove(tx.Hash())
 		}
 		log.Trace("Removed old queued transactions", "count", len(forwards))
 		// Drop all transactions that are too costly (low balance or out of gas)
 		drops, _ := list.Filter(pool.currentState.GetBalance(addr), gasLimit)
 		for _, tx := range drops {
+			log.Info("in promoteExecutables drop tx that are too costly", tx.Hash().String())
 			pool.all.Remove(tx.Hash())
 		}
 		log.Trace("Removed unpayable queued transactions", "count", len(drops))
@@ -1542,6 +1549,7 @@ func (pool *LegacyPool) promoteExecutables(accounts []common.Address) []*types.T
 		var caps = list.Cap(int(pool.config.AccountQueue))
 		for _, tx := range caps {
 			hash := tx.Hash()
+			log.Info("in promoteExecutables drop tx over the allowed limit", tx.Hash().String())
 			pool.all.Remove(hash)
 			log.Trace("Removed cap-exceeding queued transaction", "hash", hash)
 		}
@@ -1604,6 +1612,7 @@ func (pool *LegacyPool) truncatePending() {
 					for _, tx := range caps {
 						// Drop the transaction from the global pools too
 						hash := tx.Hash()
+						log.Info("in truncating pending transaction", hash.String())
 						pool.all.Remove(hash)
 
 						// Update the account nonce to the dropped transaction
@@ -1629,6 +1638,7 @@ func (pool *LegacyPool) truncatePending() {
 				for _, tx := range caps {
 					// Drop the transaction from the global pools too
 					hash := tx.Hash()
+					log.Info("in truncatePending remove tx", hash.String())
 					pool.all.Remove(hash)
 
 					// Update the account nonce to the dropped transaction
@@ -1704,6 +1714,7 @@ func (pool *LegacyPool) demoteUnexecutables() {
 		olds := list.Forward(nonce)
 		for _, tx := range olds {
 			hash := tx.Hash()
+			log.Info("in demoteUnexecutables drop old tx", hash.String())
 			pool.all.Remove(hash)
 			log.Trace("Removed old pending transaction", "hash", hash)
 		}
@@ -1711,6 +1722,7 @@ func (pool *LegacyPool) demoteUnexecutables() {
 		drops, invalids := list.Filter(pool.currentState.GetBalance(addr), gasLimit)
 		for _, tx := range drops {
 			hash := tx.Hash()
+			log.Info("in demoteUnexecutables drop costly tx", hash.String())
 			pool.all.Remove(hash)
 			log.Trace("Removed unpayable pending transaction", "hash", hash)
 		}
