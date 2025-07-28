@@ -1714,7 +1714,7 @@ func (pool *LegacyPool) demoteUnexecutables() {
 		olds := list.Forward(nonce)
 		for _, tx := range olds {
 			hash := tx.Hash()
-			log.Info("in demoteUnexecutables drop old tx", hash.String())
+			log.Info("in demoteUnexecutables drop old tx", hash.String(), "current nonce", nonce)
 			pool.all.Remove(hash)
 			log.Trace("Removed old pending transaction", "hash", hash)
 		}

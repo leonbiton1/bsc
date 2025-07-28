@@ -107,6 +107,7 @@ func (m *SortedMap) Forward(threshold uint64) types.Transactions {
 	// Pop off heap items until the threshold is reached
 	for m.index.Len() > 0 && (*m.index)[0] < threshold {
 		nonce := heap.Pop(m.index).(uint64)
+		log.Info("tx is too old", "nonce", nonce, "threshold", threshold, "hash", m.items[nonce].Hash().String())
 		removed = append(removed, m.items[nonce])
 		delete(m.items, nonce)
 	}
