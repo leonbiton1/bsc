@@ -995,6 +995,7 @@ func (pool *LegacyPool) promoteTx(addr common.Address, hash common.Hash, tx *typ
 	}
 	// Set the potentially new pending nonce and notify any subsystems of the new tx
 	pool.pendingNonces.set(addr, tx.Nonce()+1)
+	log.Info("tx promoted", tx.Hash().String(), "new nonce in pool", tx.Nonce()+1)
 
 	// Successful promotion, bump the heartbeat
 	pool.beats[addr] = time.Now()
@@ -1121,13 +1122,10 @@ func (pool *LegacyPool) Status(hash common.Hash) txpool.TxStatus {
 
 // Get returns a transaction if it is contained in the pool and nil otherwise.
 func (pool *LegacyPool) Get(hash common.Hash) *types.Transaction {
-	log.Info("getting tx from LegacyPool", hash.String())
 	tx := pool.get(hash)
 	if tx == nil {
 		log.Info("tx is nil, not sending in LegacyPool", hash.String())
 		return nil
-	} else {
-		log.Info("tx is sending in LegacyPool", hash.String())
 	}
 	return tx
 }
@@ -1308,6 +1306,7 @@ func (pool *LegacyPool) scheduleReorgLoop() {
 			queuedEvents[addr].Put(tx)
 
 		case <-curDone:
+			log.Info("cur done nil")
 			curDone = nil
 
 		case <-pool.reorgShutdownCh:
@@ -1869,7 +1868,6 @@ func (t *lookup) Range(f func(hash common.Hash, tx *types.Transaction) bool) {
 
 // Get returns a transaction if it exists in the lookup, or nil if not found.
 func (t *lookup) Get(hash common.Hash) *types.Transaction {
-	log.Info("searching tx in lookup", hash.String())
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 

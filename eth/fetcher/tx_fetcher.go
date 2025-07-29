@@ -673,9 +673,7 @@ func (f *TxFetcher) loop() {
 			for i, hash := range delivery.hashes {
 				log.Info("in delivery", hash.String(), "delivery", delivery.direct)
 				if _, ok := f.waitlist[hash]; ok {
-					log.Info("tx is in waitlist", hash.String())
 					for peer, txset := range f.waitslots {
-						log.Info("tx is in waitlist", hash.String(), "peer", peer)
 						if meta := txset[hash]; meta != nil {
 							if delivery.metas[i].kind != meta.kind {
 								log.Warn("Announced transaction type mismatch", "peer", peer, "tx", hash, "type", delivery.metas[i].kind, "ann", meta.kind)
