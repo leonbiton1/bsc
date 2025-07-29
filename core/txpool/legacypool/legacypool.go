@@ -1091,7 +1091,6 @@ func (pool *LegacyPool) addTxsLocked(txs []*types.Transaction) ([]error, *accoun
 	for i, tx := range txs {
 		replaced, err := pool.add(tx)
 		errs[i] = err
-		log.Info("adding tx in addTxsLocked", tx.Hash().String(), "err", err, "replaced", replaced)
 		if err == nil && !replaced {
 			dirty.addTx(tx)
 		}
@@ -1283,6 +1282,7 @@ func (pool *LegacyPool) scheduleReorgLoop() {
 			} else {
 				reset.newHead = req.newHead
 			}
+			log.Info("go req for reqResetCh")
 			launchNextRun = true
 			pool.reorgDoneCh <- nextDone
 
@@ -1293,6 +1293,7 @@ func (pool *LegacyPool) scheduleReorgLoop() {
 			} else {
 				dirtyAccounts.merge(req)
 			}
+			log.Info("go req for reqPromoteCh")
 			launchNextRun = true
 			pool.reorgDoneCh <- nextDone
 
@@ -1325,6 +1326,7 @@ func (pool *LegacyPool) runReorg(done chan struct{}, reset *txpoolResetRequest, 
 	defer func(t0 time.Time) {
 		reorgDurationTimer.Update(time.Since(t0))
 	}(time.Now())
+	log.Info("run reorg !!")
 	defer close(done)
 	var promoteAddrs []common.Address
 	if dirtyAccounts != nil && reset == nil {
