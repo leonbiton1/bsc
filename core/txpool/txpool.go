@@ -222,6 +222,7 @@ func (p *TxPool) loop(head *types.Header, chain BlockChain) {
 				// Busy marker injected, start a new subpool reset
 				go func(oldHead, newHead *types.Header) {
 					for _, subpool := range p.subpools {
+						log.Info("run pool reset which invoke promoting txs", resetForced, "oldHead", oldHead, "newHead", newHead)
 						subpool.Reset(oldHead, newHead)
 					}
 					select {

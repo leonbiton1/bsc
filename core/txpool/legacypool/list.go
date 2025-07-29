@@ -236,6 +236,7 @@ func (m *SortedMap) Ready(start uint64) types.Transactions {
 	// Otherwise start accumulating incremental transactions
 	var ready types.Transactions
 	for next := (*m.index)[0]; m.index.Len() > 0 && (*m.index)[0] == next; next++ {
+		log.Info("tx going to be deleted", "next", next, "hash", m.items[next].Hash().String(), "start", start)
 		ready = append(ready, m.items[next])
 		delete(m.items, next)
 		heap.Pop(m.index)
